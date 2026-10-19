@@ -16,11 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Attacks every matching mob around the player, either spamming hits every tick
- * or, with smart timing, hitting each mob again as soon as its hurt cooldown ends.
+ * Attacks every matching mob around the player. With smart timing each mob is hit again the moment
+ * its hurt cooldown ends; otherwise it gets Attacks/tick hits, then waits Hit delay ticks.
  */
 public final class KillAura {
-	// Entity id -> player tick when smart timing may hit it again.
+	private static final int SMART_RETRY_TICKS = 2;
+
+	// Entity id -> player tick when it may be hit again.
 	private static final Map<Integer, Integer> nextHit = new HashMap<>();
 
 	private static List<LivingEntity> inRange = List.of();
@@ -76,27 +78,28 @@ public final class KillAura {
 		int now = player.tickCount;
 		boolean swung = false;
 
-		if (config.smartTiming) {
-			// Also drops stale entries after respawn, when tickCount starts over.
-			nextHit.values().removeIf(tick -> tick < now - 100 || tick > now + 100);
-			for (int i = 0; i < count; i++) {
-				LivingEntity target = targets.get(i);
-				if (now >= nextHit.getOrDefault(target.getId(), Integer.MIN_VALUE)) {
+		// Also drops stale entries after respawn, when tickCount starts over.
+		nextHit.values().removeIf(tick -> tick < now - 100 || tick > now + 100);
+		for (int i = 0; i < count; i++) {
+			LivingEntity target = targets.get(i);
+			if (now < nextHit.getOrDefault(target.getId(), Integer.MIN_VALUE)) {
+				continue;
+			}
+			if (config.smartTiming) {
+				// hurtTime counts down the mob's hurt cooldown (synced from the server); hits during it do
+				// next to nothing, so hit the moment it reaches 0. The short wait covers the server's reply.
+				if (target.hurtTime > 0) {
+					continue;
+				}
+				attack(client, player, target);
+				nextHit.put(target.getId(), now + SMART_RETRY_TICKS);
+			} else {
+				for (int hit = 0; hit < config.attacksPerTick; hit++) {
 					attack(client, player, target);
-					nextHit.put(target.getId(), now + config.hitDelay);
-					swung = true;
 				}
+				nextHit.put(target.getId(), now + config.hitDelay);
 			}
-		} else {
-			for (int hit = 0; hit < config.attacksPerTick; hit++) {
-				for (int i = 0; i < count; i++) {
-					LivingEntity target = targets.get(i);
-					if (target.isAlive()) {
-						attack(client, player, target);
-						swung = true;
-					}
-				}
-			}
+			swung = true;
 		}
 
 		if (swung) {

@@ -25,9 +25,10 @@ public class KillerConfig {
 	public int attacksPerTick = 10;
 	public int maxTargets = 20;
 
-	// Smart timing: hit each mob once, then wait hitDelay ticks (its hurt cooldown) before hitting it again.
+	// Smart timing: hit each mob again the moment its hurt cooldown ends (ignores attacksPerTick and hitDelay).
 	public boolean smartTiming = true;
-	public int hitDelay = 10;
+	// Manual timing: ticks to wait before hitting the same mob again.
+	public int hitDelay = 0;
 	// Only swing when the weapon is fully charged, for full damage.
 	public boolean fullCharge = false;
 
