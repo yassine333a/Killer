@@ -22,8 +22,8 @@ public class KillerClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			while (openHub.consumeClick()) {
-				if (client.screen == null) {
-					client.setScreen(new HubScreen());
+				if (client.gui.screen() == null) {
+					client.gui.setScreen(new HubScreen());
 				}
 			}
 			KillAura.tick(client);

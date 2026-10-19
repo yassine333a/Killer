@@ -3,6 +3,7 @@ package killer.best.client.hub;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
@@ -49,7 +50,7 @@ public final class KillAura {
 
 	private static boolean isTarget(LivingEntity entity, KillerConfig config) {
 		EntityType<?> type = entity.getType();
-		if (type == EntityType.ARMOR_STAND) {
+		if (type == EntityTypes.ARMOR_STAND) {
 			return false;
 		}
 		if (entity instanceof Player) {
@@ -58,10 +59,10 @@ public final class KillAura {
 		if (config.allMobs) {
 			return true;
 		}
-		if (config.villagers && (type == EntityType.VILLAGER || type == EntityType.WANDERING_TRADER)) {
+		if (config.villagers && (type == EntityTypes.VILLAGER || type == EntityTypes.WANDERING_TRADER)) {
 			return true;
 		}
-		if (config.blazes && type == EntityType.BLAZE) {
+		if (config.blazes && type == EntityTypes.BLAZE) {
 			return true;
 		}
 		MobCategory category = type.getCategory();
