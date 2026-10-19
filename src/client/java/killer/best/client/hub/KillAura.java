@@ -10,12 +10,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Attacks every matching mob around the player, several times per tick.
+ * Attacks every matching mob around the player, either spamming hits every tick
+ * or, with smart timing, hitting each mob again as soon as its hurt cooldown ends.
  */
 public final class KillAura {
+	// Entity id -> player tick when smart timing may hit it again.
+	private static final Map<Integer, Integer> nextHit = new HashMap<>();
+
 	private KillAura() {
 	}
 
@@ -34,19 +40,46 @@ public final class KillAura {
 			return;
 		}
 
+		if (config.fullCharge && player.getAttackStrengthScale(0.5F) < 1.0F) {
+			return;
+		}
+
 		targets.sort(Comparator.comparingDouble(player::distanceToSqr));
 		int count = Math.min(targets.size(), config.maxTargets);
+		int now = player.tickCount;
+		boolean swung = false;
 
-		for (int hit = 0; hit < config.attacksPerTick; hit++) {
+		if (config.smartTiming) {
+			// Also drops stale entries after respawn, when tickCount starts over.
+			nextHit.values().removeIf(tick -> tick < now - 100 || tick > now + 100);
 			for (int i = 0; i < count; i++) {
 				LivingEntity target = targets.get(i);
-				if (target.isAlive()) {
-					client.gameMode.attack(player, target);
-					KillTracker.onAttack(target);
+				if (now >= nextHit.getOrDefault(target.getId(), Integer.MIN_VALUE)) {
+					attack(client, player, target);
+					nextHit.put(target.getId(), now + config.hitDelay);
+					swung = true;
+				}
+			}
+		} else {
+			for (int hit = 0; hit < config.attacksPerTick; hit++) {
+				for (int i = 0; i < count; i++) {
+					LivingEntity target = targets.get(i);
+					if (target.isAlive()) {
+						attack(client, player, target);
+						swung = true;
+					}
 				}
 			}
 		}
-		player.swing(InteractionHand.MAIN_HAND);
+
+		if (swung) {
+			player.swing(InteractionHand.MAIN_HAND);
+		}
+	}
+
+	private static void attack(Minecraft client, Player player, LivingEntity target) {
+		client.gameMode.attack(player, target);
+		KillTracker.onAttack(target);
 	}
 
 	private static boolean isTarget(LivingEntity entity, KillerConfig config) {

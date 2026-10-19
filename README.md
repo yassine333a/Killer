@@ -15,6 +15,9 @@ A Fabric mod for Minecraft 26.2 that adds a **Killer Hub**.
 | Range            | How far away mobs get hit (blocks)               | 1 – 6   |
 | Attacks per tick | Hits sent to each target every tick              | 1 – 10  |
 | Max targets      | How many mobs get hit at the same time           | 1 – 50  |
+| Smart timing     | Hit each mob once, then wait for its hurt cooldown (Hit delay) before hitting it again. Ignores Attacks per tick | on/off |
+| Hit delay        | Ticks to wait between hits on the same mob (10 = vanilla hurt cooldown) | 0 – 20 |
+| Full charge      | Only attack when the weapon is fully charged (max damage per hit) | on/off |
 | Villagers        | Villagers and wandering traders                  | on/off  |
 | Blazes           | Blazes                                           | on/off  |
 | Hostile          | Every hostile mob (zombies, skeletons, ...)      | on/off  |

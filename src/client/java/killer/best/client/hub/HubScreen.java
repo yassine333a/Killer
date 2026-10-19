@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class HubScreen extends Screen {
 	private static final int WIDTH = 220;
-	private static final int ROW = 24;
+	private static final int ROW = 22;
 
 	public HubScreen() {
 		super(Component.literal("Killer Hub"));
@@ -28,33 +28,37 @@ public class HubScreen extends Screen {
 		KillerConfig config = KillerConfig.INSTANCE;
 		int left = this.width / 2 - WIDTH / 2;
 		int half = (WIDTH - 4) / 2;
-		int y = Math.max(10, this.height / 2 - 132);
+		int right = left + half + 4;
+		int y = Math.max(6, this.height / 2 - 118);
 
 		addRenderableWidget(new StringWidget(left, y, WIDTH, 12,
 				Component.literal("Killer Hub").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), this.font));
-		y += 18;
+		y += 16;
 
 		addRenderableWidget(Button.builder(startLabel(), button -> {
 			config.running = !config.running;
 			button.setMessage(startLabel());
 		}).bounds(left, y, WIDTH, 20).build());
-		y += ROW + 4;
+		y += ROW + 2;
 
-		addRenderableWidget(new Slider(left, y, WIDTH, "Range", 1, 6, 0.5, config.range, v -> config.range = v));
+		addRenderableWidget(new Slider(left, y, half, "Range", 1, 6, 0.5, config.range, v -> config.range = v));
+		addRenderableWidget(new Slider(right, y, half, "Max targets", 1, 50, 1, config.maxTargets, v -> config.maxTargets = (int) v));
 		y += ROW;
-		addRenderableWidget(new Slider(left, y, WIDTH, "Attacks per tick", 1, 10, 1, config.attacksPerTick, v -> config.attacksPerTick = (int) v));
+		addRenderableWidget(new Slider(left, y, half, "Attacks/tick", 1, 10, 1, config.attacksPerTick, v -> config.attacksPerTick = (int) v));
+		addRenderableWidget(new Slider(right, y, half, "Hit delay", 0, 20, 1, config.hitDelay, v -> config.hitDelay = (int) v));
 		y += ROW;
-		addRenderableWidget(new Slider(left, y, WIDTH, "Max targets", 1, 50, 1, config.maxTargets, v -> config.maxTargets = (int) v));
+		addToggle(left, y, half, "Smart timing", () -> config.smartTiming, v -> config.smartTiming = v);
+		addToggle(right, y, half, "Full charge", () -> config.fullCharge, v -> config.fullCharge = v);
 		y += ROW + 4;
 
 		addToggle(left, y, half, "Villagers", () -> config.villagers, v -> config.villagers = v);
-		addToggle(left + half + 4, y, half, "Blazes", () -> config.blazes, v -> config.blazes = v);
+		addToggle(right, y, half, "Blazes", () -> config.blazes, v -> config.blazes = v);
 		y += ROW;
 		addToggle(left, y, half, "Hostile", () -> config.hostile, v -> config.hostile = v);
-		addToggle(left + half + 4, y, half, "Animals", () -> config.passive, v -> config.passive = v);
+		addToggle(right, y, half, "Animals", () -> config.passive, v -> config.passive = v);
 		y += ROW;
 		addToggle(left, y, half, "All mobs", () -> config.allMobs, v -> config.allMobs = v);
-		addToggle(left + half + 4, y, half, "Players", () -> config.players, v -> config.players = v);
+		addToggle(right, y, half, "Players", () -> config.players, v -> config.players = v);
 		y += ROW + 4;
 
 		addRenderableWidget(Button.builder(Component.literal("Mob Tracker").withStyle(ChatFormatting.AQUA),
@@ -62,7 +66,7 @@ public class HubScreen extends Screen {
 					KillerConfig.save();
 					Minecraft.getInstance().gui.setScreen(new TrackerScreen());
 				}).bounds(left, y, half, 20).build());
-		addToggle(left + half + 4, y, half, "HUD", () -> config.showHud, v -> config.showHud = v);
+		addToggle(right, y, half, "HUD", () -> config.showHud, v -> config.showHud = v);
 		y += ROW;
 
 		addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
