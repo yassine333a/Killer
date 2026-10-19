@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "killer",
+	"version": "${version}",
+	"name": "Killer",
+	"description": "Killer Hub: press K, hit START and every nearby mob gets hit fast, many at once.",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/killer/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"killer.best.Killer"
+		],
+		"client": [
+			"killer.best.client.KillerClient"
+		]
+	},
+	"mixins": [
+		"killer.mixins.json",
+		{
+			"config": "killer.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
