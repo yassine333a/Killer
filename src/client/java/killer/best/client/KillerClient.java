@@ -4,10 +4,13 @@ import com.mojang.blaze3d.platform.InputConstants;
 import killer.best.Killer;
 import killer.best.client.hub.HubScreen;
 import killer.best.client.hub.KillAura;
+import killer.best.client.hub.KillTracker;
 import killer.best.client.hub.KillerConfig;
+import killer.best.client.hub.TrackerHud;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
@@ -37,6 +40,9 @@ public class KillerClient implements ClientModInitializer {
 						: Component.literal("Killer: OFF").withStyle(ChatFormatting.RED, ChatFormatting.BOLD), false);
 			}
 			KillAura.tick(client);
+			KillTracker.tick(client);
 		});
+
+		HudElementRegistry.addLast(Killer.id("tracker"), TrackerHud::extract);
 	}
 }

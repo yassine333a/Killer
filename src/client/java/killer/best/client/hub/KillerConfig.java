@@ -32,6 +32,8 @@ public class KillerConfig {
 	public boolean players = false;
 	public boolean allMobs = false;
 
+	public boolean showHud = true;
+
 	public static void load() {
 		if (!Files.exists(PATH)) {
 			save();

@@ -1,6 +1,7 @@
 package killer.best.client.hub;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
@@ -27,7 +28,7 @@ public class HubScreen extends Screen {
 		KillerConfig config = KillerConfig.INSTANCE;
 		int left = this.width / 2 - WIDTH / 2;
 		int half = (WIDTH - 4) / 2;
-		int y = Math.max(10, this.height / 2 - 120);
+		int y = Math.max(10, this.height / 2 - 132);
 
 		addRenderableWidget(new StringWidget(left, y, WIDTH, 12,
 				Component.literal("Killer Hub").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), this.font));
@@ -55,6 +56,14 @@ public class HubScreen extends Screen {
 		addToggle(left, y, half, "All mobs", () -> config.allMobs, v -> config.allMobs = v);
 		addToggle(left + half + 4, y, half, "Players", () -> config.players, v -> config.players = v);
 		y += ROW + 4;
+
+		addRenderableWidget(Button.builder(Component.literal("Mob Tracker").withStyle(ChatFormatting.AQUA),
+				button -> {
+					KillerConfig.save();
+					Minecraft.getInstance().gui.setScreen(new TrackerScreen());
+				}).bounds(left, y, half, 20).build());
+		addToggle(left + half + 4, y, half, "HUD", () -> config.showHud, v -> config.showHud = v);
+		y += ROW;
 
 		addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
 				.bounds(left, y, WIDTH, 20).build());

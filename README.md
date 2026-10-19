@@ -21,6 +21,14 @@ A Fabric mod for Minecraft 26.2 that adds a **Killer Hub**.
 | Animals          | Passive mobs (cows, pigs, fish, ...)             | on/off  |
 | All mobs         | Every living mob (golems included)               | on/off  |
 | Players          | Other players                                    | on/off  |
+| HUD              | Kill counter in the top-left corner              | on/off  |
+
+## Mob Tracker
+
+Press **Mob Tracker** in the hub to see total kills, kill speed (kills per
+minute and per second), best and average speed, and kills per mob type.
+**Reset** clears the stats. The **HUD** toggle shows a small live counter on
+screen while the killer is running.
 
 Settings are saved to `config/killer.json` when the hub is closed.
 

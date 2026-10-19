@@ -42,6 +42,7 @@ public final class KillAura {
 				LivingEntity target = targets.get(i);
 				if (target.isAlive()) {
 					client.gameMode.attack(player, target);
+					KillTracker.onAttack(target);
 				}
 			}
 		}
