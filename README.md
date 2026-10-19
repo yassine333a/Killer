@@ -26,6 +26,18 @@ A Fabric mod for Minecraft 26.2 that adds a **Killer Hub**.
 | Players          | Other players                                    | on/off  |
 | HUD              | Kill counter in the top-left corner              | on/off  |
 
+## Auto repair
+
+While the killer runs, the held sword/axe is watched:
+
+- Below **15%** durability it sends `/repairer`, clicks the **golden sword** in
+  the menu that opens, then closes the menu. Attacks pause while it does this.
+- Below **5%** durability the killer **stops right away**.
+
+Turn it on/off with **Auto repair** in the hub. The command and both
+percentages can be changed in `config/killer.json` (`repairCommand`,
+`repairAt`, `stopAt`). The tracker panel shows the weapon's durability.
+
 ## Mob Tracker
 
 The right side of the hub shows live stats: mobs in range right now, how many

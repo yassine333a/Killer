@@ -2,6 +2,7 @@ package killer.best.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import killer.best.Killer;
+import killer.best.client.hub.AutoRepair;
 import killer.best.client.hub.HubScreen;
 import killer.best.client.hub.KillAura;
 import killer.best.client.hub.KillTracker;
@@ -39,6 +40,7 @@ public class KillerClient implements ClientModInitializer {
 						? Component.literal("Killer: ON").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD)
 						: Component.literal("Killer: OFF").withStyle(ChatFormatting.RED, ChatFormatting.BOLD), false);
 			}
+			AutoRepair.tick(client);
 			KillAura.tick(client);
 			KillTracker.tick(client);
 		});

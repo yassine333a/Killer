@@ -41,6 +41,13 @@ public class KillerConfig {
 
 	public boolean showHud = true;
 
+	// Auto repair: below repairAt% durability on the held sword/axe, run /repairCommand and click the
+	// golden sword in the menu it opens. Below stopAt% the killer stops no matter what.
+	public boolean autoRepair = true;
+	public int repairAt = 15;
+	public int stopAt = 5;
+	public String repairCommand = "repairer";
+
 	public static void load() {
 		if (!Files.exists(PATH)) {
 			save();

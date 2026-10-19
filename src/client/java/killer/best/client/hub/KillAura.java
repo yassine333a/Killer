@@ -74,7 +74,7 @@ public final class KillAura {
 		// Counted even while stopped, so the HUD shows what START would hit.
 		inRange = targets;
 		updateHittingNow(player.tickCount);
-		if (!config.running || targets.isEmpty()) {
+		if (!config.running || targets.isEmpty() || AutoRepair.busy()) {
 			return;
 		}
 
