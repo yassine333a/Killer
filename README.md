@@ -5,7 +5,7 @@ A Fabric mod for Minecraft 26.2 that adds a **Killer Hub**.
 ## Usage
 
 1. Press **K** in game (you can rebind it in Controls → Killer) to open the hub.
-2. Press **START**. Every matching mob in range gets hit many times per tick,
+2. Press **START** (or press **R** anywhere in game to start/stop quickly).
    and many mobs get hit at once. Press **STOP** to turn it off.
 
 ## Hub settings
