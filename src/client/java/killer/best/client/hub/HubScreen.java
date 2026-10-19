@@ -90,10 +90,8 @@ public class HubScreen extends Screen {
 				Component.literal("Mob Tracker").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), this.font));
 		y += 16;
 
-		for (int i = 0; i < 7 + TYPE_LINES; i++) {
-			StringWidget line = new StringWidget(x, y, PANEL_WIDTH, 10, Component.empty(), this.font);
-			line.alignLeft();
-			trackerLines.add(addRenderableWidget(line));
+		for (int i = 0; i < 8 + TYPE_LINES; i++) {
+			trackerLines.add(addRenderableWidget(new StringWidget(x, y, PANEL_WIDTH, 10, Component.empty(), this.font)));
 			y += 11;
 		}
 		y += 4;
@@ -114,9 +112,8 @@ public class HubScreen extends Screen {
 
 	private void refreshTracker() {
 		List<Component> text = new ArrayList<>();
-		int inRange = KillAura.inRange().size();
-		int hittable = KillAura.hittable();
-		text.add(stat("In range", inRange + (hittable < inRange ? " (hitting " + hittable + ")" : ""), ChatFormatting.YELLOW));
+		text.add(stat("In range", String.valueOf(KillAura.inRange().size()), ChatFormatting.YELLOW));
+		text.add(stat("Hitting now", String.valueOf(KillAura.hittingNow()), ChatFormatting.RED));
 		text.add(stat("Kills", String.valueOf(KillTracker.totalKills()), ChatFormatting.WHITE));
 		text.add(stat("Speed", KillTracker.killsPerMinute() + "/min  " + String.format("%.1f", KillTracker.killsPerSecond()) + "/s", ChatFormatting.WHITE));
 		text.add(stat("Best", KillTracker.bestPerMinute() + "/min", ChatFormatting.WHITE));
@@ -133,7 +130,11 @@ public class HubScreen extends Screen {
 		}
 
 		for (int i = 0; i < trackerLines.size(); i++) {
-			trackerLines.get(i).setMessage(i < text.size() ? text.get(i) : Component.empty());
+			Component line = i < text.size() ? text.get(i) : Component.empty();
+			StringWidget widget = trackerLines.get(i);
+			widget.setMessage(line);
+			// StringWidget centers its text, so shrink it to the text to keep the panel left-aligned.
+			widget.setWidth(Math.max(1, this.font.width(line)));
 		}
 	}
 

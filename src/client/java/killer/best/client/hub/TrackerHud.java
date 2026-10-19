@@ -34,8 +34,8 @@ public final class TrackerHud {
 
 		List<Line> lines = new ArrayList<>();
 		lines.add(new Line("Killer: " + (config.running ? "ON" : "OFF"), config.running ? GREEN : RED));
-		int hittable = KillAura.hittable();
-		lines.add(new Line("In range: " + inRange + (hittable < inRange ? " (hitting " + hittable + ")" : ""), YELLOW));
+		lines.add(new Line("In range: " + inRange, YELLOW));
+		lines.add(new Line("Hitting now: " + KillAura.hittingNow(), RED));
 		for (Map.Entry<String, Integer> entry : KillAura.inRangeByType().stream().limit(TYPE_LINES).toList()) {
 			lines.add(new Line(" " + entry.getKey() + ": " + entry.getValue(), YELLOW));
 		}

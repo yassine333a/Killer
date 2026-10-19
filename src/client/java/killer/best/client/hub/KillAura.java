@@ -25,7 +25,12 @@ public final class KillAura {
 	// Entity id -> player tick when it may be hit again.
 	private static final Map<Integer, Integer> nextHit = new HashMap<>();
 
+	private static final int HITTING_WINDOW_TICKS = 20;
+
 	private static List<LivingEntity> inRange = List.of();
+	// Entity id -> player tick of our last hit on it, for the "Hitting" count.
+	private static final Map<Integer, Integer> lastAttack = new HashMap<>();
+	private static int hittingNow = 0;
 
 	private KillAura() {
 	}
@@ -35,9 +40,9 @@ public final class KillAura {
 		return inRange;
 	}
 
-	/** How many of the mobs in range get hit at once (capped by Max targets). */
-	public static int hittable() {
-		return Math.min(inRange.size(), KillerConfig.INSTANCE.maxTargets);
+	/** How many mobs in range were actually hit during the last second. */
+	public static int hittingNow() {
+		return hittingNow;
 	}
 
 	/** Mobs in range grouped by type name, most first. */
@@ -56,6 +61,8 @@ public final class KillAura {
 		Player player = client.player;
 		if (player == null || client.level == null || client.gameMode == null || !player.isAlive()) {
 			inRange = List.of();
+			lastAttack.clear();
+			hittingNow = 0;
 			return;
 		}
 
@@ -66,6 +73,7 @@ public final class KillAura {
 		targets.sort(Comparator.comparingDouble(player::distanceToSqr));
 		// Counted even while stopped, so the HUD shows what START would hit.
 		inRange = targets;
+		updateHittingNow(player.tickCount);
 		if (!config.running || targets.isEmpty()) {
 			return;
 		}
@@ -104,11 +112,24 @@ public final class KillAura {
 
 		if (swung) {
 			player.swing(InteractionHand.MAIN_HAND);
+			updateHittingNow(now);
 		}
+	}
+
+	private static void updateHittingNow(int now) {
+		lastAttack.values().removeIf(tick -> now - tick > HITTING_WINDOW_TICKS || tick > now);
+		int count = 0;
+		for (LivingEntity entity : inRange) {
+			if (lastAttack.containsKey(entity.getId())) {
+				count++;
+			}
+		}
+		hittingNow = count;
 	}
 
 	private static void attack(Minecraft client, Player player, LivingEntity target) {
 		client.gameMode.attack(player, target);
+		lastAttack.put(target.getId(), player.tickCount);
 		KillTracker.onAttack(target);
 	}
 
