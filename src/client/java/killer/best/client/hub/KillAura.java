@@ -9,6 +9,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -22,13 +23,37 @@ public final class KillAura {
 	// Entity id -> player tick when smart timing may hit it again.
 	private static final Map<Integer, Integer> nextHit = new HashMap<>();
 
+	private static List<LivingEntity> inRange = List.of();
+
 	private KillAura() {
+	}
+
+	/** Mobs in range that the current settings would hit, closest first. */
+	public static List<LivingEntity> inRange() {
+		return inRange;
+	}
+
+	/** How many of the mobs in range get hit at once (capped by Max targets). */
+	public static int hittable() {
+		return Math.min(inRange.size(), KillerConfig.INSTANCE.maxTargets);
+	}
+
+	/** Mobs in range grouped by type name, most first. */
+	public static List<Map.Entry<String, Integer>> inRangeByType() {
+		Map<String, Integer> counts = new HashMap<>();
+		for (LivingEntity entity : inRange) {
+			counts.merge(entity.getType().getDescription().getString(), 1, Integer::sum);
+		}
+		List<Map.Entry<String, Integer>> list = new ArrayList<>(counts.entrySet());
+		list.sort((a, b) -> b.getValue() - a.getValue());
+		return list;
 	}
 
 	public static void tick(Minecraft client) {
 		KillerConfig config = KillerConfig.INSTANCE;
 		Player player = client.player;
-		if (!config.running || player == null || client.level == null || client.gameMode == null || !player.isAlive()) {
+		if (player == null || client.level == null || client.gameMode == null || !player.isAlive()) {
+			inRange = List.of();
 			return;
 		}
 
@@ -36,7 +61,10 @@ public final class KillAura {
 		AABB box = player.getBoundingBox().inflate(config.range);
 		List<LivingEntity> targets = client.level.getEntitiesOfClass(LivingEntity.class, box,
 				entity -> entity != player && entity.isAlive() && player.distanceToSqr(entity) <= rangeSq && isTarget(entity, config));
-		if (targets.isEmpty()) {
+		targets.sort(Comparator.comparingDouble(player::distanceToSqr));
+		// Counted even while stopped, so the HUD shows what START would hit.
+		inRange = targets;
+		if (!config.running || targets.isEmpty()) {
 			return;
 		}
 
@@ -44,7 +72,6 @@ public final class KillAura {
 			return;
 		}
 
-		targets.sort(Comparator.comparingDouble(player::distanceToSqr));
 		int count = Math.min(targets.size(), config.maxTargets);
 		int now = player.tickCount;
 		boolean swung = false;

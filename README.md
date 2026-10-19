@@ -30,8 +30,10 @@ A Fabric mod for Minecraft 26.2 that adds a **Killer Hub**.
 
 Press **Mob Tracker** in the hub to see total kills, kill speed (kills per
 minute and per second), best and average speed, and kills per mob type.
-**Reset** clears the stats. The **HUD** toggle shows a small live counter on
-screen while the killer is running.
+**Reset** clears the stats. It also shows **In range now**: how many mobs the
+current settings would hit right now (even while stopped). The **HUD** toggle shows a small live counter on
+screen: mobs in range per type (yellow) and kills (white). It shows up
+whenever the killer is running or there are mobs in range.
 
 Settings are saved to `config/killer.json` when the hub is closed.
 

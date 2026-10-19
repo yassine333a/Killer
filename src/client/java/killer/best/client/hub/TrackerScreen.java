@@ -34,7 +34,7 @@ public class TrackerScreen extends Screen {
 				Component.literal("Mob Tracker").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), this.font));
 		y += 18;
 
-		for (int i = 0; i < 5 + TYPE_LINES; i++) {
+		for (int i = 0; i < 6 + TYPE_LINES; i++) {
 			lines.add(addRenderableWidget(new StringWidget(left, y, WIDTH, 10, Component.empty(), this.font)));
 			y += 12;
 		}
@@ -59,6 +59,8 @@ public class TrackerScreen extends Screen {
 
 	private void refresh() {
 		List<Component> text = new ArrayList<>();
+		int inRange = KillAura.inRange().size();
+		text.add(stat("In range now", inRange + (KillAura.hittable() < inRange ? " (hitting " + KillAura.hittable() + ")" : "")));
 		text.add(stat("Total kills", String.valueOf(KillTracker.totalKills())));
 		text.add(stat("Speed", KillTracker.killsPerMinute() + " kills/min  (" + String.format("%.1f", KillTracker.killsPerSecond()) + "/s)"));
 		text.add(stat("Best speed", KillTracker.bestPerMinute() + " kills/min"));
