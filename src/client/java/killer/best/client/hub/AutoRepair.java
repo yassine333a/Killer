@@ -15,29 +15,37 @@ import net.minecraft.world.item.Items;
 
 /**
  * Keeps the held sword/axe alive: below repairAt% it runs the repair command and clicks the golden
- * sword in the menu that opens; below stopAt% it stops the killer right away.
+ * sword in the menu that opens, retrying up to repairTries times. Below stopAt% it stops the
+ * killer right away, keeps trying to repair, and starts the killer again once the weapon is fixed.
  */
 public final class AutoRepair {
-	// Ticks to wait for the repair menu to open before giving up.
+	// Ticks to wait for the repair menu to open before trying again.
 	private static final int OPEN_TIMEOUT = 60;
 	// Ticks to let the menu's items arrive before clicking.
 	private static final int SETTLE_TICKS = 4;
-	// Ticks between the click and closing the menu.
-	private static final int CLOSE_DELAY = 4;
-	// Ticks before trying again after a repair attempt.
-	private static final int COOLDOWN = 60;
+	// Ticks after a click to see whether the weapon got repaired.
+	private static final int CLICK_CHECK_TICKS = 6;
+	// Clicks on the golden sword per menu before closing it and running the command again.
+	private static final int CLICKS_PER_MENU = 3;
+	// Ticks between attempts.
+	private static final int COOLDOWN = 20;
 
-	private enum State { IDLE, WAITING_FOR_MENU, CLOSING, COOLDOWN }
+	private enum State { IDLE, WAITING_FOR_MENU, CLICKED, COOLDOWN }
 
 	private static State state = State.IDLE;
 	private static int timer = 0;
+	private static int clicks = 0;
+	private static int attempts = 0;
+	// Set when the killer was stopped for low durability, so it starts again after a repair.
+	private static boolean stoppedForDurability = false;
+	private static boolean wasRunning = false;
 
 	private AutoRepair() {
 	}
 
 	/** True while a repair is in progress, so the killer pauses its attacks. */
 	public static boolean busy() {
-		return state == State.WAITING_FOR_MENU || state == State.CLOSING;
+		return state == State.WAITING_FOR_MENU || state == State.CLICKED;
 	}
 
 	/** Durability left on the held sword/axe in percent, or -1 when not holding one. */
@@ -58,24 +66,51 @@ public final class AutoRepair {
 		KillerConfig config = KillerConfig.INSTANCE;
 		LocalPlayer player = client.player;
 		if (player == null || client.gameMode == null) {
-			state = State.IDLE;
+			reset();
 			return;
 		}
 
 		int durability = heldDurability(player);
+		boolean needsRepair = durability >= 0 && durability < config.repairAt;
 
 		// Safety stop, even in the middle of a repair.
 		if (config.running && durability >= 0 && durability < config.stopAt) {
 			config.running = false;
-			client.gui.hud.setOverlayMessage(Component.literal("Killer stopped: weapon at " + durability + "%")
-					.withStyle(ChatFormatting.RED, ChatFormatting.BOLD), false);
+			stoppedForDurability = true;
+			message(client, "Killer stopped: weapon at " + durability + "%", ChatFormatting.RED);
+		}
+
+		// The user started or stopped the killer themselves: forget the safety stop.
+		if (config.running || !config.autoRepair) {
+			stoppedForDurability = false;
+		}
+
+		// Pressing START again gives auto repair a fresh set of tries.
+		if (config.running && !wasRunning) {
+			attempts = 0;
+		}
+		wasRunning = config.running;
+
+		if (durability < 0) {
+			attempts = 0;
+		} else if (!needsRepair && state != State.CLICKED) {
+			if (attempts > 0 || stoppedForDurability) {
+				message(client, "Weapon repaired (" + durability + "%)", ChatFormatting.GREEN);
+				if (stoppedForDurability) {
+					config.running = true;
+				}
+			}
+			attempts = 0;
+			stoppedForDurability = false;
 		}
 
 		switch (state) {
 			case IDLE -> {
-				if (config.autoRepair && config.running && durability >= 0 && durability < config.repairAt
-						&& client.gui.screen() == null) {
+				if (config.autoRepair && (config.running || stoppedForDurability) && needsRepair
+						&& attempts < config.repairTries && client.gui.screen() == null) {
 					player.connection.sendCommand(config.repairCommand);
+					attempts++;
+					clicks = 0;
 					state = State.WAITING_FOR_MENU;
 					timer = 0;
 				}
@@ -87,21 +122,33 @@ public final class AutoRepair {
 					Slot slot = findGoldenSword(menu);
 					if (slot != null) {
 						client.gameMode.handleContainerInput(menu.containerId, slot.index, 0, ContainerInput.PICKUP, player);
-						state = State.CLOSING;
+						clicks++;
+						state = State.CLICKED;
 						timer = 0;
 					} else if (timer >= OPEN_TIMEOUT) {
 						player.closeContainer();
-						fail(client, "no golden sword in the repair menu");
+						retry(client, "no golden sword in the menu");
 					}
 				} else if (timer >= OPEN_TIMEOUT) {
-					fail(client, "the repair menu did not open");
+					retry(client, "menu did not open");
 				}
 			}
-			case CLOSING -> {
-				if (++timer >= CLOSE_DELAY) {
-					if (client.gui.screen() instanceof AbstractContainerScreen<?>) {
-						player.closeContainer();
-					}
+			case CLICKED -> {
+				if (++timer < CLICK_CHECK_TICKS) {
+					return;
+				}
+				if (needsRepair && clicks < CLICKS_PER_MENU && client.gui.screen() instanceof AbstractContainerScreen<?>) {
+					// Not repaired yet: click the golden sword again.
+					state = State.WAITING_FOR_MENU;
+					timer = SETTLE_TICKS;
+					return;
+				}
+				if (client.gui.screen() instanceof AbstractContainerScreen<?>) {
+					player.closeContainer();
+				}
+				if (needsRepair) {
+					retry(client, "still at " + durability + "%");
+				} else {
 					state = State.COOLDOWN;
 					timer = 0;
 				}
@@ -124,10 +171,23 @@ public final class AutoRepair {
 		return null;
 	}
 
-	private static void fail(Minecraft client, String reason) {
-		client.gui.hud.setOverlayMessage(Component.literal("Auto repair failed: " + reason)
-				.withStyle(ChatFormatting.GOLD), false);
+	private static void retry(Minecraft client, String reason) {
+		int tries = KillerConfig.INSTANCE.repairTries;
+		message(client, "Repair try " + attempts + "/" + tries + " failed (" + reason + ")"
+				+ (attempts < tries ? ", trying again" : ", giving up"), ChatFormatting.GOLD);
 		state = State.COOLDOWN;
 		timer = 0;
+	}
+
+	private static void message(Minecraft client, String text, ChatFormatting color) {
+		client.gui.hud.setOverlayMessage(Component.literal(text).withStyle(color), false);
+	}
+
+	private static void reset() {
+		state = State.IDLE;
+		timer = 0;
+		clicks = 0;
+		attempts = 0;
+		stoppedForDurability = false;
 	}
 }

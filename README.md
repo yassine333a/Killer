@@ -32,11 +32,15 @@ While the killer runs, the held sword/axe is watched:
 
 - Below **15%** durability it sends `/repairer`, clicks the **golden sword** in
   the menu that opens, then closes the menu. Attacks pause while it does this.
-- Below **5%** durability the killer **stops right away**.
+  If the weapon is still low it clicks again (up to 3 times), then closes the
+  menu and runs the command again, up to **5 tries**. Pressing START again
+  gives it 5 new tries.
+- Below **5%** durability the killer **stops right away**. Auto repair keeps
+  trying, and once the weapon is repaired the killer starts again by itself.
 
 Turn it on/off with **Auto repair** in the hub. The command and both
 percentages can be changed in `config/killer.json` (`repairCommand`,
-`repairAt`, `stopAt`). The tracker panel shows the weapon's durability.
+`repairAt`, `stopAt`, `repairTries`). The tracker panel shows the weapon's durability.
 
 ## Mob Tracker
 

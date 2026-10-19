@@ -40,7 +40,7 @@ public final class TrackerHud {
 			lines.add(new Line(" " + entry.getKey() + ": " + entry.getValue(), YELLOW));
 		}
 		lines.add(new Line("Kills: " + KillTracker.totalKills(), WHITE));
-		lines.add(new Line("Speed: " + KillTracker.killsPerMinute() + "/min", WHITE));
+		lines.add(new Line("Speed: " + KillTracker.killsPerMinute() + "/min  " + String.format("%.1f", KillTracker.killsPerSecond()) + "/s", WHITE));
 		for (Map.Entry<String, Integer> entry : KillTracker.byType().stream().limit(TYPE_LINES).toList()) {
 			lines.add(new Line(" " + entry.getKey() + ": " + entry.getValue(), WHITE));
 		}

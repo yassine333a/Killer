@@ -41,7 +41,7 @@ public class HubScreen extends Screen {
 	private static final int GAP = 8;
 	private static final int HEADER = 26;
 	private static final int ROW = 22;
-	private static final int TYPE_LINES = 4;
+	private static final int TYPE_LINES = 3;
 
 	private final List<Slider> manualSliders = new ArrayList<>();
 	private final List<Label> labels = new ArrayList<>();
@@ -187,6 +187,7 @@ public class HubScreen extends Screen {
 		y += 4;
 		y = stat(graphics, "Kills", String.valueOf(KillTracker.totalKills()), TEXT, x, valueX, y);
 		y = stat(graphics, "Speed", KillTracker.killsPerMinute() + "/min", TEXT, x, valueX, y);
+		y = stat(graphics, "Per second", String.format("%.1f", KillTracker.killsPerSecond()) + "/s", TEXT, x, valueX, y);
 		int weapon = Minecraft.getInstance().player == null ? -1 : AutoRepair.heldDurability(Minecraft.getInstance().player);
 		y = stat(graphics, "Weapon", weapon < 0 ? "-" : weapon + "%",
 				weapon < 0 ? MUTED : weapon < config.stopAt ? ACCENT : weapon < config.repairAt ? YELLOW : GREEN, x, valueX, y);

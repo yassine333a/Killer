@@ -47,6 +47,8 @@ public class KillerConfig {
 	public int repairAt = 15;
 	public int stopAt = 5;
 	public String repairCommand = "repairer";
+	// How many times to run the command (each with up to 3 clicks) before giving up.
+	public int repairTries = 5;
 
 	public static void load() {
 		if (!Files.exists(PATH)) {
